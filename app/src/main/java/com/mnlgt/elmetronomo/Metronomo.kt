@@ -10,9 +10,8 @@ class Metronomo(private val audioManager: AudioManager) {
         val delayNanos: Long = 1000000000
         var wakeup = System.nanoTime() + delayNanos //Half second from right now
 
-        //soundP.play(tick, 1F, 1F, 1, 0, 1F)
-
         audioManager.playTick()
+
         var now: Long
 
         while (true) {
@@ -26,14 +25,9 @@ class Metronomo(private val audioManager: AudioManager) {
                 }
             }
             if (now >= wakeup) {
-                //Play sound
-                //soundP.play(tick, 1F, 1F, 1, 0, 1F)
                 audioManager.playTick()
                 wakeup += delayNanos
             }
-            //}
         }
-
     }
-
 }
