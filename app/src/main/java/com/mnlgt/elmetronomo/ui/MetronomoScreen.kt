@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -18,11 +19,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun MetronomoScreen(modifier: Modifier, metronomo: Metronomo, viewModel: MetronomoViewModel) {
     val coroutineScope = rememberCoroutineScope()
+    val uiState = viewModel.uiState.collectAsState().value
 
     Column() {
 
-        Button(onClick = { suspend { viewModel.iniciar() } }) {
-            Text(text = stringResource(R.string.iniciar))
+        Button(onClick = { coroutineScope.launch { viewModel.aprietaBoton() } }) {
+            Text(text = stringResource(id = uiState.textoBoton))
         }
 //        Button(onClick = { coroutineScope.cancel() }) {
 //            Text(text = "Stop")

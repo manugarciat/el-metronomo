@@ -11,7 +11,8 @@ import androidx.compose.ui.Modifier
 import com.mnlgt.elmetronomo.ui.MetronomoScreen
 import com.mnlgt.elmetronomo.ui.MetronomoViewModel
 import com.mnlgt.elmetronomo.ui.theme.ElMetronomoTheme
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 class MainActivity : ComponentActivity() {
