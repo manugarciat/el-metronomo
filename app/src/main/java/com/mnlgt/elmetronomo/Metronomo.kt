@@ -5,9 +5,10 @@ import kotlinx.coroutines.withContext
 
 class Metronomo(private val audioManager: AudioManager) {
 
+    private var delayNanos: Long = 1000000000
+
     suspend fun iniciar() {
 
-        val delayNanos: Long = 1000000000
         var wakeup = System.nanoTime() + delayNanos //Half second from right now
 
         audioManager.playTick()
@@ -25,9 +26,14 @@ class Metronomo(private val audioManager: AudioManager) {
                 }
             }
             if (now >= wakeup) {
+
                 audioManager.playTick()
                 wakeup += delayNanos
             }
         }
+    }
+
+    fun setTempo(tempo: Float) {
+        delayNanos = ((60 / tempo) * 1000000000).toLong()
     }
 }

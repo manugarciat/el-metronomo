@@ -2,6 +2,7 @@ package com.mnlgt.elmetronomo.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,16 +20,21 @@ import kotlinx.coroutines.launch
 fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel) {
 
     val coroutineScope = rememberCoroutineScope()
-    val uiState by  viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column() {
 
         Button(onClick = { coroutineScope.launch { viewModel.aprietaBoton() } }) {
             Text(text = stringResource(id = if (uiState.andando) R.string.detener else R.string.iniciar))
         }
-//        Button(onClick = { viewModel.cambia() }) {
-//            Text(text = stringResource(id = viewModel.textoBoton()))
-//        }
+        Slider(
+            modifier = modifier,
+            value = uiState.bpm.toFloat(),
+            onValueChange = { tempo -> viewModel.setTempo(tempo) },
+            valueRange = 10F..500F
+        )
+        Text(text = uiState.bpm.toString())
+
     }
 }
 

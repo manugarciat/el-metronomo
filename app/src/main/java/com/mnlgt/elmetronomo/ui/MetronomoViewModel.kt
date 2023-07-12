@@ -49,4 +49,13 @@ class MetronomoViewModel(
             iniciar()
     }
 
+    fun setTempo(tempo: Float) {
+        _uiState.update {
+            currentState -> currentState.copy(
+            bpm = tempo.toInt()
+            )
+        }
+        metronomo.setTempo(tempo)
+    }
+
 }
