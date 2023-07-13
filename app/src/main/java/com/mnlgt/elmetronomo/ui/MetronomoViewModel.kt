@@ -28,7 +28,7 @@ class MetronomoViewModel(
             )
         }
         _metronomoJob = viewModelScope.launch {
-            metronomo.iniciar()
+            metronomo.iniciarTrack()
             //while (true) {} leo variable de metronomo y actualizo estado
         }
     }

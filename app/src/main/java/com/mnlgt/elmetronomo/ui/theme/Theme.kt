@@ -10,10 +10,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -24,7 +26,8 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
+    background = colorFondo
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -49,7 +52,8 @@ fun ElMetronomoTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
+
+        darkTheme -> {DarkColorScheme}
         else -> LightColorScheme
     }
     val view = LocalView.current
@@ -65,4 +69,13 @@ fun ElMetronomoTheme(
         typography = Typography,
         content = content
     )
+
+    val systemUiController = rememberSystemUiController()
+    //light
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = colorFondo,
+            darkIcons = true
+        )
+    }
 }

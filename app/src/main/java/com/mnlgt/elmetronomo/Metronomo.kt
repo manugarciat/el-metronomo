@@ -3,15 +3,16 @@ package com.mnlgt.elmetronomo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class Metronomo(private val audioManager: AudioManager) {
+class Metronomo(private val metronomoAudioManager: MetronomoAudioManager, private val metronomoAudioTrack: MetronomoAudioTrack) {
 
     private var delayNanos: Long = 1000000000
+    private var tempo:Int = 60
 
     suspend fun iniciar() {
 
         var wakeup = System.nanoTime() + delayNanos //Half second from right now
 
-        audioManager.playTick()
+        metronomoAudioManager.playTick()
 
         var now: Long
 
@@ -27,13 +28,20 @@ class Metronomo(private val audioManager: AudioManager) {
             }
             if (now >= wakeup) {
 
-                audioManager.playTick()
+                metronomoAudioManager.playTick()
                 wakeup += delayNanos
             }
         }
     }
 
-    fun setTempo(tempo: Float) {
+    suspend fun iniciarTrack(){
+        metronomoAudioTrack.iniciar()
+        //iniciar()
+    }
+
+    fun setTempo(t: Float) {
+        tempo = t.toInt()
         delayNanos = ((60 / tempo) * 1000000000).toLong()
+        metronomoAudioTrack.setTempo(t.toInt())
     }
 }

@@ -17,9 +17,14 @@ import com.mnlgt.elmetronomo.ui.theme.ElMetronomoTheme
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         //inicializar sonidos
-        val audioManager = AudioManager(this)
-        val metronomo = Metronomo(audioManager)
+        val metronomoAudioManager = MetronomoAudioManager(this)
+        val metronomoAudioTrack = MetronomoAudioTrack()
+
+        val metronomo = Metronomo(metronomoAudioManager, metronomoAudioTrack)
+
+
 
         val viewModelFactory = MetronomoViewModelFactory(metronomo)
         val viewModel =
