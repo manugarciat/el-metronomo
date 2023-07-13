@@ -58,13 +58,14 @@ fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel) {
         Button(
             onClick = { coroutineScope.launch { viewModel.aprietaBoton() } },
             shape = CircleShape,
-            modifier = Modifier.size(150.dp)
+            modifier = Modifier.size(100.dp)
         ) {
 
             Icon(
                 imageVector = if (uiState.andando) Icons.Default.Close else Icons.Default.PlayArrow,
                 contentDescription = "content description",
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(80.dp),
+                tint = MaterialTheme.colorScheme.background
             )
 
 
