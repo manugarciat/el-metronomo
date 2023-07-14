@@ -1,7 +1,10 @@
 package com.mnlgt.elmetronomo.ui
 
-data class MetronomoUiState(
-    var bpm: Float = 60F,
-    var andando: Boolean = false
+import com.mnlgt.elmetronomo.data.tempoInicial
 
+data class MetronomoUiState(
+    var bpm: Float = tempoInicial,
+    var andando: Boolean = false,
+    var acento: Int = 0,
+    var subdivision: Int = 1
 )

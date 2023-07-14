@@ -34,6 +34,7 @@ class MetronomoViewModel(
     }
 
     private fun detener() {
+        //metronomo.detener()
         _metronomoJob?.cancel()
         _uiState.update { currentState ->
             currentState.copy(
@@ -52,10 +53,20 @@ class MetronomoViewModel(
     fun setTempo(tempo: Float) {
         _uiState.update {
             currentState -> currentState.copy(
-            bpm = tempo.toInt()
+            bpm = tempo
             )
         }
         metronomo.setTempo(tempo)
+    }
+
+    fun setAcento(acento: Int){
+        _uiState.update {
+                currentState -> currentState.copy(
+            acento = acento
+        )
+        }
+        metronomo.setAcento(acento)
+
     }
 
 }

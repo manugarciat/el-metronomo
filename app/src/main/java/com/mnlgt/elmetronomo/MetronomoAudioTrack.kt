@@ -1,9 +1,10 @@
 package com.mnlgt.elmetronomo
 
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
+import com.mnlgt.elmetronomo.data.acentoInicial
+import com.mnlgt.elmetronomo.data.subDivInicial
+import com.mnlgt.elmetronomo.data.tempoInicial
+import com.mnlgt.elmetronomo.data.volumenFactor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.experimental.and
@@ -11,66 +12,48 @@ import kotlin.math.sin
 
 class MetronomoAudioTrack {
 
-    private val sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-    private val bufferSizeBytes = AudioTrack.getMinBufferSize(
-        sampleRate,
-        AudioFormat.CHANNEL_OUT_MONO,
-        AudioFormat.ENCODING_PCM_16BIT
-    ) * 4 //multiplico por 4 para mejorar rendimiento cuando cambia configuracion por ejemplo
+    //audiotrack
+    private var _audioTrack: AudioTrack = obtenerAudioTrack()
 
-    private var numSamples: Int
-    private var samples: DoubleArray
-    private var generatedSnd: ShortArray
+    //cantidad de samples que vamos a imprimir en cada bloque, igual al buffer size
+    private var _numSamples: Int = _audioTrack.bufferSizeInFrames
 
-    private var audioTrack: AudioTrack
-    private var tempo: Float = 60.0F
+    //array donde guardamos los samples calculados para escribir en audiotrack, valor entero de 16 bit (short, 2 bytes)
+    private var _generatedSnd: ShortArray = ShortArray(_numSamples)
 
+    //variables para la escritura del audio, lleva la cantidad de samples impresos del tick y del silencio
+    private var sndPosition = 0
+    private var silPosition = 0
+    private var beatPosition = 1
 
-    init {
-
-        //prepara audio attributes
-        val attribBuilder = AudioAttributes.Builder()
-        attribBuilder.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-        attribBuilder.setUsage(AudioAttributes.USAGE_MEDIA)
-
-        val attributes = attribBuilder.build()
-
-        // Build audio format
-        val afBuilder = AudioFormat.Builder()
-        afBuilder.setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-        afBuilder.setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-        afBuilder.setSampleRate(sampleRate)
-
-        val format = afBuilder.build()
-
-        audioTrack = AudioTrack(
-            attributes,
-            format,
-            bufferSizeBytes,
-            AudioTrack.MODE_STREAM,
-            AudioManager.AUDIO_SESSION_ID_GENERATE
-        )
-
-        numSamples = audioTrack.bufferSizeInFrames
-        samples = DoubleArray(numSamples)
-        generatedSnd = ShortArray(numSamples)
-    }
+    //variables de metronomo
+    private var _tempo: Float = tempoInicial
+    private var _subdivision: Int = subDivInicial
+    private var _acentoRate: Int = acentoInicial
 
 
-    //genera sample para reproducir, el largo es en cantidad de samples por ahora
+    //genera sample para reproducir, el largo es en cantidad de samples, devuelve array de numeros entre -1 y 1 (Double)
     private fun generateSample(largo: Int, frecuencia: Double): DoubleArray {
 
         val result = DoubleArray(largo)
         for (i in 0 until largo) {
-            result[i] = sin(2 * Math.PI * i / (sampleRate / frecuencia))
+            result[i] = sin(2 * Math.PI * i / (_audioTrack.sampleRate / frecuencia)) * volumenFactor
         }
         return result
     }
 
-    //convierte el sample en byte arrays para el formato 16 bit pcm que acepta audiotrack (no se si funciona bien)
+    private fun to16Bit(input: DoubleArray): ShortArray {
+        val result = ShortArray(input.size)
+        for (i in input.indices) {
+            result[i] = (input[i] * Short.MAX_VALUE).toInt().toShort()
+        }
+        return result
+    }
+
+    //convierte el sample en byte arrays para el formato 16 bit pcm (en bytes, 2 bytes por sample) que acepta audiotrack (no se si funciona bien)
     private fun to16BitPCM(input: DoubleArray): ByteArray {
 
-        val result = ByteArray(input.size)
+        val result = ByteArray(input.size * 2)
         var index = 0
         for (i in input.indices) {
 
@@ -83,51 +66,62 @@ class MetronomoAudioTrack {
     }
 
     private fun calcularSilencio(largoSample: Int): Int {
-        return (((60.0 / tempo.toFloat()) * sampleRate)).toInt() - largoSample
+        return (((60.0 / _tempo) * _audioTrack.sampleRate)).toInt() - largoSample
     }
 
     suspend fun iniciar() {
 
-        val sonido = generateSample(sampleRate / 8, 330.0)
+        val tick = generateSample(_audioTrack.sampleRate / 8, 360.0)
+        val acento = generateSample(_audioTrack.sampleRate / 8, 432.0)
 
-        var t = 0
-        var s = 0
+        val tick16bit = to16Bit(tick)
+        val acento16bit = to16Bit(acento)
 
-        audioTrack.play()
+        _audioTrack.play()
 
         while (true) {
-            val silencio = calcularSilencio(sonido.size)
 
             withContext(Dispatchers.Default) {
-
-                for (i in generatedSnd.indices) {
-
-                    if (t < sonido.size) {
-                        if (t < sonido.size - 1000) {
-                            generatedSnd[i] = (sonido[t] * Short.MAX_VALUE).toInt().toShort()
-                        } else {
-                            generatedSnd[i] =
-                                ((sonido[t] * Short.MAX_VALUE) * ((sonido.size - t) / 1000.0)).toInt()
-                                    .toShort()
-                        }
-                        t++
-                    } else {
-                        generatedSnd[i] = 0
-                        s++
-                        if (s >= silencio) {
-                            t = 0
-                            s = 0
-                        }
-                    }
-                }
-                //generatedSnd = to16BitPCM(samples)
-                audioTrack.write(generatedSnd, 0, generatedSnd.size)
+                imprimirAudio(tick16bit, acento16bit)
+                _audioTrack.write(_generatedSnd, 0, _generatedSnd.size)
             }
         }
     }
 
-    fun setTempo(t: Float) {
-        tempo = t
+    private fun imprimirAudio(tick: ShortArray, acento: ShortArray) {
+
+        val silencio = calcularSilencio(tick.size)
+
+        for (i in _generatedSnd.indices) {
+            val sonido = if (beatPosition == 1) acento else tick
+
+            if (sndPosition < sonido.size) {
+
+                if (sndPosition < sonido.size - 1000) {
+                    _generatedSnd[i] =
+                        sonido[sndPosition]
+                } else {
+                    _generatedSnd[i] =
+                        (sonido[sndPosition] * ((sonido.size - sndPosition) / 1000.0)).toInt()
+                            .toShort()
+                }
+                sndPosition++
+            } else {
+                _generatedSnd[i] = 0
+                silPosition++
+                if (silPosition >= silencio) {
+                    sndPosition = 0
+                    silPosition = 0
+                    if (beatPosition < _acentoRate) beatPosition++
+                    else beatPosition = 1
+                }
+            }
+        }
+    }
+
+    fun configMetronomo(t: Float, a: Int) {
+        _tempo = t
+        _acentoRate = a
     }
 
 }

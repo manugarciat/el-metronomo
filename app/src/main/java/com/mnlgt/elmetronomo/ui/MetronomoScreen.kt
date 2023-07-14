@@ -70,7 +70,7 @@ fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel) {
             )
             Slider(
                 modifier = Modifier.padding(30.dp),
-                value = uiState.bpm.toFloat(),
+                value = uiState.bpm,
                 onValueChange = { tempo -> viewModel.setTempo(tempo) },
                 valueRange = 10F..260F,
                 colors = SliderDefaults.colors()

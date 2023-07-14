@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.mnlgt.elmetronomo.Metronomo
 
-
 class MetronomoViewModelFactory(private val metronomo: Metronomo) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
