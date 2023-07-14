@@ -1,28 +1,18 @@
 package com.mnlgt.elmetronomo.ui
 
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,24 +21,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mnlgt.elmetronomo.R
 import com.mnlgt.elmetronomo.ui.theme.ElMetronomoTheme
-import com.mnlgt.elmetronomo.ui.theme.PurpleGrey40
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel) {
 
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
+
 
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
@@ -57,22 +44,18 @@ fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel) {
 
         Button(
             onClick = { coroutineScope.launch { viewModel.aprietaBoton() } },
-            shape = CircleShape,
-            modifier = Modifier.size(100.dp)
+            shape = ShapeDefaults.Medium,
+            modifier = Modifier.size(150.dp)
         ) {
 
             Icon(
-                imageVector = if (uiState.andando) Icons.Default.Close else Icons.Default.PlayArrow,
-                contentDescription = "content description",
+                imageVector = if (uiState.andando) Icons.Rounded.Close else Icons.Rounded.PlayArrow,
+                contentDescription =
+                if (uiState.andando) stringResource(id = R.string.detener)
+                else stringResource(id = R.string.iniciar),
                 modifier = Modifier.size(80.dp),
                 tint = MaterialTheme.colorScheme.background
             )
-
-
-//            Text(
-//                text = stringResource(id = if (uiState.andando) R.string.detener else R.string.iniciar),
-//                color = MaterialTheme.colorScheme.secondary
-//            )
         }
 
         Column(

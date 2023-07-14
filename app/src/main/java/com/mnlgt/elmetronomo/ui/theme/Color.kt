@@ -12,4 +12,6 @@ val Pink40 = Color(0xFF7D5260)
 
 val VerdeClaro = Color(0xFFC0CA33)
 
-val colorFondo = Color(0xFFDEE0BB)
+val colorFondo = Color(0xFFF2865E)
+val primarioAmarillo = Color(0xFFF2CF1D)
+val oscuro= Color(0xFF0D0D0D)
