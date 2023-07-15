@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,11 +32,13 @@ import androidx.compose.ui.unit.sp
 import com.mnlgt.elmetronomo.R
 import kotlinx.coroutines.launch
 
+
 @Composable
-fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel) {
+fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel,  windowSize: WindowWidthSizeClass) {
 
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
+
 
 
     Column(

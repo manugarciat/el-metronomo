@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import com.mnlgt.elmetronomo.ui.MetronomoScreen
@@ -16,6 +18,7 @@ import com.mnlgt.elmetronomo.ui.theme.ElMetronomoTheme
 
 class MainActivity : ComponentActivity() {
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val metronomoAudioTrack = MetronomoAudioTrack()
@@ -33,7 +36,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MetronomoScreen(Modifier, viewModel)
+                    val windowSize = calculateWindowSizeClass(this)
+                    MetronomoScreen(Modifier, viewModel, windowSize.widthSizeClass)
                 }
             }
         }

@@ -33,17 +33,36 @@ class MetronomoAudioTrack {
 
     //variables para detener:
     private var beginStop: Boolean = false
-    private var fadeLength: Int = 3000
+    private var fadeLength: Int = 4000
     private var fadePosition: Int = 0
     private var detenerAhora: Boolean = false
 
 
     //genera sample para reproducir, el largo es en cantidad de samples, devuelve array de numeros entre -1 y 1 (Double)
-    private fun generateSample(largo: Int, frecuencia: Double): DoubleArray {
+    private fun generateSample(largo: Int, frecuencia: Double, volumen: Double = 1.0): DoubleArray {
+
+        val fadeIn = 100
+        val fadeOut = 2000
 
         val result = DoubleArray(largo)
         for (i in 0 until largo) {
-            result[i] = sin(2 * Math.PI * i / (_audioTrack.sampleRate / frecuencia)) * volumenFactor
+
+            when (i) {
+                in 0 until fadeIn -> { //fade in
+                    result[i] =
+                        sin(2 * Math.PI * i / (_audioTrack.sampleRate / frecuencia)) * (i / fadeIn.toDouble()) * volumenFactor * volumen
+                }
+
+                in fadeIn until largo - fadeOut -> {
+                    result[i] =
+                        sin(2 * Math.PI * i / (_audioTrack.sampleRate / frecuencia)) * volumenFactor * volumen
+                }
+
+                in largo - fadeOut until largo -> { //fade out
+                    result[i] =
+                        sin(2 * Math.PI * i / (_audioTrack.sampleRate / frecuencia)) * ((largo - i) / fadeOut.toDouble()) * volumenFactor * volumen
+                }
+            }
         }
         return result
     }
@@ -71,8 +90,9 @@ class MetronomoAudioTrack {
         return result
     }
 
-    private fun calcularSilencio(largoSample: Int): Int {
-        return (((60.0 / _tempo) * _audioTrack.sampleRate)).toInt() - largoSample
+    private fun calcularSilencio(duracioSonido: Int, duracionSubdivision: Int): Int {
+        val duracionBeat = ((60.0 / _tempo) * _audioTrack.sampleRate).toInt()
+        return ((duracionBeat - (duracioSonido* _subdivision)) / _subdivision) //- (duracionSubdivision * (_subdivision - 1))
     }
 
     suspend fun iniciar() {
@@ -85,18 +105,16 @@ class MetronomoAudioTrack {
         beginStop = false
         detenerAhora = false
 
-        val tick = generateSample(_audioTrack.sampleRate / 8, 360.0)
-        val acento = generateSample(_audioTrack.sampleRate / 8, 432.0)
-
-        val tick16bit = to16Bit(tick)
-        val acento16bit = to16Bit(acento)
+        val tick16bit = to16Bit(generateSample(_audioTrack.sampleRate / 10, 360.0))
+        val acento16bit = to16Bit(generateSample(_audioTrack.sampleRate / 10, 432.0))
+        val subSonido16Bit = to16Bit(generateSample(_audioTrack.sampleRate / 10, 360.0, 0.2))
 
         _audioTrack.play()
 
         withContext(Dispatchers.Default) {
             while (!detenerAhora) {
 
-                imprimirAudio(tick16bit, acento16bit)
+                imprimirAudio(tick16bit, acento16bit, subSonido16Bit)
                 _audioTrack.write(_generatedSnd, 0, _generatedSnd.size)
             }
 
@@ -105,47 +123,44 @@ class MetronomoAudioTrack {
         }
     }
 
-    private fun imprimirAudio(tick: ShortArray, acento: ShortArray) {
+    private fun imprimirAudio(tick: ShortArray, acento: ShortArray, subS: ShortArray) {
 
-        val silencio = calcularSilencio(tick.size)
+        val silencio = calcularSilencio(tick.size, subS.size)
 
         for (i in _generatedSnd.indices) {
-            val sonido = if (beatPosition == 1) acento else tick
+
+            val sonido = if (beatPosition % _subdivision != 1 && _subdivision != 1) subS else
+                if (beatPosition == 1) acento else tick
 
             if (sndPosition < sonido.size) {
-
-                if (sndPosition < sonido.size - 4000) {
-                    _generatedSnd[i] =
-                        sonido[sndPosition]
-                } else {
-                    _generatedSnd[i] =
-                        (sonido[sndPosition] * ((sonido.size - sndPosition) / 4000.0)).toInt()
-                            .toShort()
-                }
+                _generatedSnd[i] = sonido[sndPosition]
                 sndPosition++
             } else {
                 _generatedSnd[i] = 0
                 silPosition++
+
                 if (silPosition >= silencio) {
                     sndPosition = 0
                     silPosition = 0
-                    if (beatPosition < _acentoRate) beatPosition++
+                    if (beatPosition < _acentoRate * _subdivision) beatPosition++
                     else beatPosition = 1
                 }
             }
+
             if (beginStop) {
                 if (fadePosition >= fadeLength) {
                     detenerAhora = true
                     _generatedSnd[i] = 0
                 } else {
-                    //genera fade out
-                    _generatedSnd[i] = (_generatedSnd[i] * ((fadeLength - fadePosition) / fadeLength.toFloat())).toInt().toShort()
+                    //genera fade out:
+                    _generatedSnd[i] =
+                        (_generatedSnd[i] * ((fadeLength - fadePosition) / fadeLength.toFloat())).toInt()
+                            .toShort()
                     fadePosition++
                 }
             }
         }
     }
-
 
     fun setTempo(t: Float) {
         _tempo = t
