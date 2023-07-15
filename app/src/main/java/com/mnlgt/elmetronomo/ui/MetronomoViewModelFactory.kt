@@ -2,7 +2,6 @@ package com.mnlgt.elmetronomo.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.mnlgt.elmetronomo.Metronomo
 import com.mnlgt.elmetronomo.MetronomoAudioTrack
 
 class MetronomoViewModelFactory(private val metronomo: MetronomoAudioTrack) : ViewModelProvider.Factory {

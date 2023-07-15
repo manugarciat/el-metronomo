@@ -142,15 +142,10 @@ class MetronomoAudioTrack {
                     _generatedSnd[i] = (_generatedSnd[i] * ((fadeLength - fadePosition) / fadeLength.toFloat())).toInt().toShort()
                     fadePosition++
                 }
-
             }
         }
     }
 
-    fun configMetronomo(t: Float, a: Int) {
-        _tempo = t
-        _acentoRate = a
-    }
 
     fun setTempo(t: Float) {
         _tempo = t
