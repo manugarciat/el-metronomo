@@ -19,9 +19,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val metronomoAudioTrack = MetronomoAudioTrack()
-        val metronomo = Metronomo(metronomoAudioTrack)
 
-        val viewModelFactory = MetronomoViewModelFactory(metronomo)
+        val viewModelFactory = MetronomoViewModelFactory(metronomoAudioTrack)
         val viewModel =
             ViewModelProvider(this, viewModelFactory)[MetronomoViewModel::class.java]
 

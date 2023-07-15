@@ -2,7 +2,7 @@ package com.mnlgt.elmetronomo.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mnlgt.elmetronomo.Metronomo
+import com.mnlgt.elmetronomo.MetronomoAudioTrack
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MetronomoViewModel(
-    private val metronomo: Metronomo
+    private val metronomo: MetronomoAudioTrack
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MetronomoUiState())
@@ -28,14 +28,14 @@ class MetronomoViewModel(
             )
         }
         _metronomoJob = viewModelScope.launch {
-            metronomo.iniciarTrack()
-            //while (true) {} leo variable de metronomo y actualizo estado
+            metronomo.iniciar()
+            //while (true) {} leo variable de metronomo y actualizo estado (para actualizar UI)
         }
     }
 
     private fun detener() {
-        //metronomo.detener()
-        _metronomoJob?.cancel()
+        metronomo.detener()
+        //_metronomoJob?.cancel()
         _uiState.update { currentState ->
             currentState.copy(
                 andando = false
@@ -51,21 +51,31 @@ class MetronomoViewModel(
     }
 
     fun setTempo(tempo: Float) {
-        _uiState.update {
-            currentState -> currentState.copy(
-            bpm = tempo
+        _uiState.update { currentState ->
+            currentState.copy(
+                bpm = tempo
             )
         }
         metronomo.setTempo(tempo)
     }
 
-    fun setAcento(acento: Int){
-        _uiState.update {
-                currentState -> currentState.copy(
-            acento = acento
-        )
+    fun setAcento(a: Int) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                acento = a
+            )
         }
-        metronomo.setAcento(acento)
+        metronomo.setAcento(a)
+
+    }
+
+    fun setSubdivision(s: Int) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                subdivision = s
+            )
+        }
+        metronomo.setSubdivision(s)
 
     }
 

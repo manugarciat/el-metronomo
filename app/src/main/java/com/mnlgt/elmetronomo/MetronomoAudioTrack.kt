@@ -31,6 +31,12 @@ class MetronomoAudioTrack {
     private var _subdivision: Int = subDivInicial
     private var _acentoRate: Int = acentoInicial
 
+    //variables para detener:
+    private var beginStop: Boolean = false
+    private var fadeLength: Int = 3000
+    private var fadePosition: Int = 0
+    private var detenerAhora: Boolean = false
+
 
     //genera sample para reproducir, el largo es en cantidad de samples, devuelve array de numeros entre -1 y 1 (Double)
     private fun generateSample(largo: Int, frecuencia: Double): DoubleArray {
@@ -71,6 +77,14 @@ class MetronomoAudioTrack {
 
     suspend fun iniciar() {
 
+        sndPosition = 0
+        silPosition = 0
+        beatPosition = 1
+
+        fadePosition = 0
+        beginStop = false
+        detenerAhora = false
+
         val tick = generateSample(_audioTrack.sampleRate / 8, 360.0)
         val acento = generateSample(_audioTrack.sampleRate / 8, 432.0)
 
@@ -79,12 +93,15 @@ class MetronomoAudioTrack {
 
         _audioTrack.play()
 
-        while (true) {
+        withContext(Dispatchers.Default) {
+            while (!detenerAhora) {
 
-            withContext(Dispatchers.Default) {
                 imprimirAudio(tick16bit, acento16bit)
                 _audioTrack.write(_generatedSnd, 0, _generatedSnd.size)
             }
+
+            _audioTrack.stop()
+            //_audioTrack.release()
         }
     }
 
@@ -97,12 +114,12 @@ class MetronomoAudioTrack {
 
             if (sndPosition < sonido.size) {
 
-                if (sndPosition < sonido.size - 1000) {
+                if (sndPosition < sonido.size - 4000) {
                     _generatedSnd[i] =
                         sonido[sndPosition]
                 } else {
                     _generatedSnd[i] =
-                        (sonido[sndPosition] * ((sonido.size - sndPosition) / 1000.0)).toInt()
+                        (sonido[sndPosition] * ((sonido.size - sndPosition) / 4000.0)).toInt()
                             .toShort()
                 }
                 sndPosition++
@@ -116,12 +133,39 @@ class MetronomoAudioTrack {
                     else beatPosition = 1
                 }
             }
+            if (beginStop) {
+                if (fadePosition >= fadeLength) {
+                    detenerAhora = true
+                    _generatedSnd[i] = 0
+                } else {
+                    //genera fade out
+                    _generatedSnd[i] = (_generatedSnd[i] * ((fadeLength - fadePosition) / fadeLength.toFloat())).toInt().toShort()
+                    fadePosition++
+                }
+
+            }
         }
     }
 
     fun configMetronomo(t: Float, a: Int) {
         _tempo = t
         _acentoRate = a
+    }
+
+    fun setTempo(t: Float) {
+        _tempo = t
+    }
+
+    fun detener() {
+        beginStop = true
+    }
+
+    fun setAcento(acento: Int) {
+        _acentoRate = acento
+    }
+
+    fun setSubdivision(sub: Int) {
+        _subdivision = sub
     }
 
 }

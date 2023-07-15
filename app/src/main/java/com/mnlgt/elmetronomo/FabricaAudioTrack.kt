@@ -14,7 +14,7 @@ fun obtenerAudioTrack(): AudioTrack {
         sampleRate,
         AudioFormat.CHANNEL_OUT_MONO,
         AudioFormat.ENCODING_PCM_16BIT
-    ) * 4 //multiplico por 4 para mejorar rendimiento cuando cambia configuracion por ejemplo
+    ) * 3 //multiplico por 4 para mejorar rendimiento cuando cambia configuracion por ejemplo
 
     //audiotrack
     val audioTrack: AudioTrack
