@@ -10,7 +10,6 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -18,16 +17,17 @@ import androidx.core.view.ViewCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = primarioDark,
+    secondary = secuendarioDark,
+    tertiary = Pink80,
+    background = colorFondoDark
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = primarioAmarillo,
     secondary = oscuro,
-    tertiary = Pink40,
-    background = colorFondo
+    tertiary = clarito,
+    background = colorFondoLight
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -47,13 +47,19 @@ fun ElMetronomoTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+
+    val systemUiController = rememberSystemUiController()
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> {DarkColorScheme}
+        darkTheme -> {
+            DarkColorScheme
+        }
+
         else -> LightColorScheme
     }
     val view = LocalView.current
@@ -70,12 +76,26 @@ fun ElMetronomoTheme(
         content = content
     )
 
-    val systemUiController = rememberSystemUiController()
-    //light
-    SideEffect {
-        systemUiController.setSystemBarsColor(
-            color = colorFondo,
-            darkIcons = true
-        )
+    if (darkTheme) {
+        //light
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = colorFondoDark,
+                darkIcons = false
+            )
+        }
+
+    }else {
+        //light
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = colorFondoLight,
+                darkIcons = true
+            )
+        }
     }
+
+
+
+
 }

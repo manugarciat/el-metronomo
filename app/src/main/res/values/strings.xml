@@ -2,5 +2,8 @@
     <string name="app_name">El Metronomo</string>
     <string name="iniciar">Iniciar</string>
     <string name="detener">Detener</string>
+    <string name="subdivision">Subdivisión:</string>
+    <string name="acento">Acento:</string>
+    <string name="bpm">BPM:</string>
 
 </resources>

@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val windowSize = calculateWindowSizeClass(this)
-                    MetronomoScreen(Modifier, viewModel, windowSize.widthSizeClass)
+                    MetronomoScreen(viewModel, windowSize.widthSizeClass)
                 }
             }
         }

@@ -25,11 +25,16 @@ class MetronomoAudioTrack {
     private var sndPosition = 0
     private var silPosition = 0
     private var beatPosition = 1
+    private var subPosition = 1
 
     //variables de metronomo
     private var _tempo: Float = tempoInicial
     private var _subdivision: Int = subDivInicial
     private var _acentoRate: Int = acentoInicial
+
+    //variable para cambio subdivision:
+    private var subdivisionNueva = _subdivision
+
 
     //variables para detener:
     private var beginStop: Boolean = false
@@ -90,9 +95,16 @@ class MetronomoAudioTrack {
         return result
     }
 
-    private fun calcularSilencio(duracioSonido: Int, duracionSubdivision: Int): Int {
+    //calcula silencios para todas las subdivisiones:
+    private fun calcularSilencio(duracioSonido: Int, duracionSubdivision: Int): IntArray {
         val duracionBeat = ((60.0 / _tempo) * _audioTrack.sampleRate).toInt()
-        return ((duracionBeat - (duracioSonido* _subdivision)) / _subdivision) //- (duracionSubdivision * (_subdivision - 1))
+        val resultado = IntArray(5)
+        for (i in resultado.indices) {
+            if (i != 0)
+                resultado[i] =
+                    ((duracionBeat - (duracioSonido * i)) / i) //- (duracionSubdivision * (_subdivision - 1))
+        }
+        return resultado
     }
 
     suspend fun iniciar() {
@@ -105,9 +117,9 @@ class MetronomoAudioTrack {
         beginStop = false
         detenerAhora = false
 
-        val tick16bit = to16Bit(generateSample(_audioTrack.sampleRate / 10, 360.0))
-        val acento16bit = to16Bit(generateSample(_audioTrack.sampleRate / 10, 432.0))
-        val subSonido16Bit = to16Bit(generateSample(_audioTrack.sampleRate / 10, 360.0, 0.2))
+        val tick16bit = to16Bit(generateSample(_audioTrack.sampleRate / 16, 360.0, 0.7))
+        val acento16bit = to16Bit(generateSample(_audioTrack.sampleRate / 16, 432.0))
+        val subSonido16Bit = to16Bit(generateSample(_audioTrack.sampleRate / 16, 360.0, 0.2))
 
         _audioTrack.play()
 
@@ -129,7 +141,7 @@ class MetronomoAudioTrack {
 
         for (i in _generatedSnd.indices) {
 
-            val sonido = if (beatPosition % _subdivision != 1 && _subdivision != 1) subS else
+            val sonido = if (subPosition != 1) subS else
                 if (beatPosition == 1) acento else tick
 
             if (sndPosition < sonido.size) {
@@ -139,11 +151,16 @@ class MetronomoAudioTrack {
                 _generatedSnd[i] = 0
                 silPosition++
 
-                if (silPosition >= silencio) {
+                if (silPosition >= silencio[_subdivision]) {
                     sndPosition = 0
                     silPosition = 0
-                    if (beatPosition < _acentoRate * _subdivision) beatPosition++
-                    else beatPosition = 1
+                    if (subPosition == _subdivision) {
+                        if (beatPosition < _acentoRate) beatPosition++
+                        else beatPosition = 1
+                        subPosition = 1
+                        _subdivision =
+                            subdivisionNueva //cambio en este momento la subdivision (en el comienzo de un beat nuevo)
+                    } else subPosition++
                 }
             }
 
@@ -175,7 +192,8 @@ class MetronomoAudioTrack {
     }
 
     fun setSubdivision(sub: Int) {
-        _subdivision = sub
+        subdivisionNueva = sub
+
     }
 
 }

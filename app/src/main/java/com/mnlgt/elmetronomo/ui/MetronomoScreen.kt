@@ -30,144 +30,183 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mnlgt.elmetronomo.R
+import com.mnlgt.elmetronomo.data.rangoTempo
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun MetronomoScreen(modifier: Modifier, viewModel: MetronomoViewModel,  windowSize: WindowWidthSizeClass) {
-
+fun MetronomoScreen(
+    viewModel: MetronomoViewModel,
+    windowSize: WindowWidthSizeClass,
+    modifier: Modifier = Modifier
+) {
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
 
-
-
-    Column(
-        verticalArrangement = Arrangement.SpaceEvenly,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Button(
-                onClick = { coroutineScope.launch { viewModel.aprietaBoton() } },
-                shape = CircleShape,
-                modifier = Modifier.size(140.dp)
+    when (windowSize) {
+        WindowWidthSizeClass.Compact -> {
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Icon(
-                    imageVector = if (uiState.andando) Icons.Rounded.Close else Icons.Rounded.PlayArrow,
-                    contentDescription =
-                    if (uiState.andando) stringResource(id = R.string.detener)
-                    else stringResource(id = R.string.iniciar),
-                    modifier = Modifier.size(180.dp),
-                    tint = MaterialTheme.colorScheme.background
+                BotonMetronomo(
+                    { coroutineScope.launch { viewModel.aprietaBoton() } },
+                    uiState.andando
                 )
-            }
-            Text(
-                text = if (uiState.andando) stringResource(id = R.string.detener)
-                else stringResource(id = R.string.iniciar),
-                modifier = Modifier.padding(10.dp),
-                fontWeight = FontWeight.Normal,
-                fontStyle = FontStyle.Italic
-            )
 
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MetronomoSlider(
+                        stringResource(id = R.string.bpm).uppercase(),
+                        uiState.bpm,
+                        rangoTempo,
+                        0,
+                        funcOnValueChange = { t -> viewModel.setTempo(t) }
+                    )
+
+                    MetronomoSlider(
+                        stringResource(id = R.string.acento).uppercase(),
+                        uiState.acento.toFloat(),
+                        1F..14F,
+                        12,
+                        funcOnValueChange = { a -> viewModel.setAcento(a.toInt()) }
+                    )
+
+                    MetronomoSlider(
+                        stringResource(id = R.string.subdivision).uppercase(),
+                        uiState.subdivision.toFloat(),
+                        1F..4F,
+                        2,
+                        funcOnValueChange = { s -> viewModel.setSubdivision(s.toInt()) }
+                    )
+                }
+            }
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        else -> {
             Row(
-                verticalAlignment = Alignment.Bottom
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "BPM:",
-                    modifier = Modifier
-                        .padding(end = 10.dp, bottom = 3.dp),
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.secondary
+
+                BotonMetronomo(
+                    { coroutineScope.launch { viewModel.aprietaBoton() } },
+                    uiState.andando,
+                    modifier = Modifier.padding(start = 80.dp, end = 60.dp)
                 )
 
-                Text(
-                    text = uiState.bpm.toInt().toString(),
-                    fontSize = 30.sp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Light,
-                    modifier = Modifier.width(60.dp),
-                    textAlign = TextAlign.Right
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(end = 80.dp, top = 5.dp)
+                ) {
+                    MetronomoSlider(
+                        stringResource(id = R.string.bpm).uppercase(),
+                        uiState.bpm,
+                        rangoTempo,
+                        0,
+                        funcOnValueChange = { t -> viewModel.setTempo(t) }
+                    )
+
+                    MetronomoSlider(
+                        stringResource(id = R.string.acento).uppercase(),
+                        uiState.acento.toFloat(),
+                        1F..14F,
+                        12,
+                        funcOnValueChange = { a -> viewModel.setAcento(a.toInt()) }
+                    )
+
+                    MetronomoSlider(
+                        stringResource(id = R.string.subdivision).uppercase(),
+                        uiState.subdivision.toFloat(),
+                        1F..4F,
+                        2,
+                        funcOnValueChange = { s -> viewModel.setSubdivision(s.toInt()) }
+                    )
+                }
             }
-
-
-            Slider(
-                modifier = Modifier.padding(start = 30.dp, end = 30.dp, bottom = 30.dp),
-                value = uiState.bpm,
-                onValueChange = { tempo -> viewModel.setTempo(tempo) },
-                valueRange = 10F..260F,
-                colors = SliderDefaults.colors()
-            )
-
-            Row(
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    text = "ACENTO:",
-                    modifier = Modifier
-                        .padding(end = 10.dp, bottom = 3.dp),
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-
-                Text(
-                    text = uiState.acento.toString(),
-                    fontSize = 30.sp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Light,
-                    modifier = Modifier.width(40.dp),
-                    textAlign = TextAlign.Right
-                )
-            }
-
-            Slider(
-                modifier = Modifier.padding(start = 30.dp, end = 30.dp, bottom = 30.dp),
-                value = uiState.acento.toFloat(),
-                onValueChange = { a -> viewModel.setAcento(a.toInt()) },
-                valueRange = 1F..14F,
-                colors = SliderDefaults.colors(),
-                steps = 12
-            )
-
-            Row(
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    text = "SUBDIVISION:",
-                    modifier = Modifier
-                        .padding(end = 10.dp, bottom = 3.dp),
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-
-                Text(
-                    text = uiState.subdivision.toString(),
-                    fontSize = 30.sp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Light,
-                    modifier = Modifier.width(40.dp),
-                    textAlign = TextAlign.Right
-                )
-            }
-
-            Slider(
-                modifier = Modifier.padding(start = 30.dp, end = 30.dp, bottom = 30.dp),
-                value = uiState.subdivision.toFloat(),
-                onValueChange = {a -> viewModel.setSubdivision(a.toInt())  },
-                valueRange = 1F..4F,
-                colors = SliderDefaults.colors(),
-                steps = 2
-            )
         }
 
     }
+}
+
+@Composable
+private fun BotonMetronomo(
+    funcOnClick: () -> Unit,
+    estaPrendido: Boolean,
+    modifier: Modifier = Modifier
+) {
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+        Button(
+            onClick = funcOnClick,
+            shape = CircleShape,
+            modifier = Modifier.size(140.dp)
+        ) {
+
+            Icon(
+                imageVector = if (estaPrendido) Icons.Rounded.Close else Icons.Rounded.PlayArrow,
+                contentDescription =
+                if (estaPrendido) stringResource(id = R.string.detener)
+                else stringResource(id = R.string.iniciar),
+                modifier = Modifier.size(180.dp),
+                tint = MaterialTheme.colorScheme.background
+            )
+        }
+        Text(
+            text = if (estaPrendido) stringResource(id = R.string.detener)
+            else stringResource(id = R.string.iniciar),
+            modifier = Modifier.padding(10.dp),
+            fontWeight = FontWeight.Normal,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.secondary
+        )
+    }
+}
+
+@Composable
+private fun MetronomoSlider(
+    texto: String,
+    variable: Float,
+    rango: ClosedFloatingPointRange<Float>,
+    pasos: Int,
+    funcOnValueChange: (Float) -> Unit
+
+) {
+    Row(
+        verticalAlignment = Alignment.Bottom
+    ) {
+        Text(
+            text = texto,
+            modifier = Modifier
+                .padding(end = 10.dp, bottom = 3.dp),
+            fontWeight = FontWeight.Black,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Text(
+            text = variable.toInt().toString(),
+            fontSize = 30.sp,
+            color = MaterialTheme.colorScheme.secondary,
+            fontWeight = FontWeight.Light,
+            modifier = Modifier.width(60.dp),
+            textAlign = TextAlign.Right
+        )
+    }
+    Slider(
+        modifier = Modifier.padding(start = 30.dp, end = 30.dp, bottom = 30.dp),
+        value = variable,
+        onValueChange = funcOnValueChange,
+        valueRange = rango,
+        colors = SliderDefaults.colors(
+            //thumbColor = MaterialTheme.colorScheme.secondary,
+            //activeTrackColor = MaterialTheme.colorScheme.secondary,
+            inactiveTrackColor = MaterialTheme.colorScheme.tertiary
+        ),
+        steps = pasos
+
+    )
 }
